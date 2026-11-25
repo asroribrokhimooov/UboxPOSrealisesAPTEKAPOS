@@ -1,0 +1,24 @@
+# upload branch'idagi bo'laklarni bitta o'rnatuvchiga birlashtirib, Release qiladi (GitHub git'da 100 MB dan katta fayl olmaydi)
+name: release
+on:
+  push:
+    branches: [upload]
+permissions:
+  contents: write
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Birlashtirish va tekshirish
+        run: |
+          cat parts/* > "$(cat NAME)"
+          sha256sum -c SHA256SUMS
+      - name: Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          name="$(cat NAME)"; tag="$(cat TAG)"
+          printf 'Windows 10/11, 64-bit.\n\nSHA-256: `%s`\n' "$(cut -d' ' -f1 SHA256SUMS)" > notes.md
+          gh release create "$tag" "$name" --target main --title "Ubox POS $tag" --notes-file notes.md --latest
